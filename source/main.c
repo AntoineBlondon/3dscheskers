@@ -46,7 +46,7 @@ typedef struct
 static C2D_SpriteSheet spriteSheet;
 static Sprite sprites[MAX_SPRITES];
 int HEIGHT = 31;
-int WIDTH = 51;
+int WIDTH = 42;
 
 int SELECTED_COLOR = 43;
 int BACKGROUND_COLOR_1 = 42;
@@ -73,6 +73,8 @@ static void initSprites()
 		C2D_SpriteFromSheet(&sprite->spr, spriteSheet, list[i]);
 		C2D_SpriteSetCenter(&sprite->spr, 0.5f, 0.5f);
 		C2D_SpriteSetPos(&sprite->spr, 20 + 16*i, 20);
+        C2D_SpriteSetScale(&sprite->spr, 2, 2);
+
         coordinates co = {20 + 16*i, 20};
         sprite->pos = co;
 	}
@@ -560,6 +562,107 @@ plateau *destroy(plateau *pl, coordinates selected, coordinates e)
     return pl;
 }
 
+int getNbOf(plateau pl, char p, int color)
+{
+    int nb = 0;
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            cell c = pl.lines[i].cells[j];
+            if(c.color == color && c.piece == p) {
+                nb++;
+            }
+        }
+    }
+    return nb;
+}
+
+coordinates getFirst(plateau pl, char p, int color)
+{
+    coordinates co = {-20, -20};
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            cell c = pl.lines[i].cells[j];
+            if(c.color == color && c.piece == p) {
+                co.x = i;
+                co.y = j;
+                return co;
+            }
+        }
+    }
+    return co;
+}
+
+coordinates getNTh(plateau pl, char p, int color, int nth)
+{
+    int counter = 0;
+    coordinates co = {-20, -20};
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            cell c = pl.lines[i].cells[j];
+            if(c.color == color && c.piece == p) {
+                co.x = i;
+                co.y = j;
+                counter++;
+                if(counter >=nth) {
+                    return co;
+                }
+            }
+        }
+    }
+    return co;
+}
+
+coordinates getLast(plateau pl, char p, int color)
+{
+    coordinates co = {-20, -20};
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            cell c = pl.lines[i].cells[j];
+            if(c.color == color && c.piece == p) {
+                co.x = i;
+                co.y = j;
+            }
+        }
+    }
+    return co;
+}
+
+void spriteSetPos(int s, int x, int y)
+{
+    coordinates co = {x, y};
+    sprites[s].pos = co;
+}
+
+void spriteGoTo(int s, coordinates pos)
+{
+    int x = pos.x;
+    int y = pos.y;
+    spriteSetPos(s, SCREEN_WIDTH/2 - 16 -32 * 3 + 32*x, SCREEN_HEIGHT/2 + 2 -22 * 4 + 22*y);
+}
+
+void refreshSprites(plateau pl)
+{
+    spriteSetPos(0, SCREEN_WIDTH/2,SCREEN_HEIGHT/2);
+    spriteGoTo(1, getFirst(pl, 'r', 1));
+    spriteGoTo(2, getLast(pl, 'r', 1));
+    spriteGoTo(3, getFirst(pl, 'z', 1));
+    spriteGoTo(4, getFirst(pl, 'f', 1));
+    spriteGoTo(5, getFirst(pl, 'p', 1));
+    spriteGoTo(6, getNTh(pl, 'p', 1, 2));
+    spriteGoTo(7, getNTh(pl, 'p', 1, 3));
+    spriteGoTo(8, getLast(pl, 'p', 1));
+
+    spriteGoTo(9, getFirst(pl, 'r', 0));
+    spriteGoTo(10, getLast(pl, 'r', 0));
+    spriteGoTo(11, getFirst(pl, 'z', 0));
+    spriteGoTo(12, getFirst(pl, 'f', 0));
+    spriteGoTo(13, getFirst(pl, 'p', 0));
+    spriteGoTo(14, getNTh(pl, 'p', 0, 2));
+    spriteGoTo(15, getNTh(pl, 'p', 0, 3));
+    spriteGoTo(16, getLast(pl, 'p', 0));
+
+
+}
 
 int main()
 {
@@ -591,7 +694,7 @@ int main()
     printf("%i", C2D_SpriteSheetCount(spriteSheet));
     
 
-
+    refreshSprites(pl);
     // Main loop
     while (aptMainLoop()) {
         
@@ -604,6 +707,7 @@ int main()
 			break; // break in order to return to hbmenu
 
         moveSprites();
+        refreshSprites(pl);
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         C2D_TargetClear(top, C2D_Color32f(0.0f, 0.0f, 0.0f, 1.0f));
         C2D_SceneBegin(top);
@@ -630,9 +734,10 @@ int main()
 
         
 
-        
-        
 
+        
+        
+        printBorders();
         printPlateau(pl);
         
         
