@@ -7,7 +7,7 @@
 #include <time.h>
 
 
-#define MAX_SPRITES   16
+#define MAX_SPRITES   17
 #define SCREEN_WIDTH  400
 #define SCREEN_HEIGHT 240
 
@@ -65,7 +65,7 @@ static void initSprites()
 {
 	size_t numImages = C2D_SpriteSheetCount(spriteSheet);
 	srand(time(NULL));
-    int list[16] = {0, 0, 1, 2, 3, 3, 3, 3, 4, 4, 5, 6, 7, 7, 7, 7};
+    int list[17] = {8, 0, 0, 1, 2, 3, 3, 3, 3, 4, 4, 5, 6, 7, 7, 7, 7};
 	for (size_t i = 0; i < MAX_SPRITES; i++)
 	{
 		Sprite* sprite = &sprites[i];
@@ -563,20 +563,25 @@ plateau *destroy(plateau *pl, coordinates selected, coordinates e)
 
 int main()
 {
-    romfsInit();
-    gfxInitDefault();
-    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+    // Init libs
+	romfsInit();
+	gfxInitDefault();
+	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
 	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
 	C2D_Prepare();
-    consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_BOTTOM, NULL);
 
-    C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+	// Create screens
+	C3D_RenderTarget* top = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
 
-    spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
+	// Load graphics
+	spriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/sprites.t3x");
 	if (!spriteSheet) svcBreak(USERBREAK_PANIC);
 
-    initSprites();
-    plateau pl = startPlateau();
+	// Initialize sprites
+	initSprites();
+
+	plateau pl = startPlateau();
     int turn = 0;
     int needToEat = 0;
     coordinates selected = {-1,-1};
@@ -589,6 +594,8 @@ int main()
 
     // Main loop
     while (aptMainLoop()) {
+        
+        
         hidScanInput();
 
 		// Respond to user input
@@ -602,6 +609,7 @@ int main()
         C2D_SceneBegin(top);
         for (size_t i = 0; i < MAX_SPRITES; i ++)
             C2D_DrawSprite(&sprites[i].spr);
+        C3D_FrameEnd(0);
         
 
         setCoordinates(0,0);
@@ -620,12 +628,13 @@ int main()
             }
         }
 
-
+        
 
         
         
 
         printPlateau(pl);
+        
         
 
         static SwkbdState swkbd;
@@ -737,27 +746,25 @@ int main()
             }
 
             if(could) turn = (turn == 1) ? 0 : 1;
-
-            
-            C3D_FrameEnd(0);
-			
 		}
-        // Flush and swap framebuffers
-		gfxFlushBuffers();
-		gfxSwapBuffers();
 
+        
+        
+        
+        
 		//Wait for VBlank
 		gspWaitForVBlank();
     }
 
-    C2D_SpriteSheetFree(spriteSheet);
+	// Delete graphics
+	C2D_SpriteSheetFree(spriteSheet);
 
 	// Deinit libs
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
-    romfsExit();
-    return 0;
+	romfsExit();
+	return 0;
 }
 
 

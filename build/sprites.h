@@ -9,3 +9,4 @@
 #define sprites_sprite6_idx 5
 #define sprites_sprite7_idx 6
 #define sprites_sprite8_idx 7
+#define sprites_board_idx 8
