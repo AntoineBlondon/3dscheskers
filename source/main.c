@@ -43,14 +43,26 @@ typedef struct
 	coordinates pos;
 } Sprite;
 
+typedef enum colors {
+    BLACK = 30, 
+    RED, 
+    GREEN, 
+    YELLOW, 
+    BLUE, 
+    MAGENTA, 
+    CYAN, 
+    WHITE
+} console_color;
+
+
 static C2D_SpriteSheet spriteSheet;
 static Sprite sprites[MAX_SPRITES];
 int HEIGHT = 31;
 int WIDTH = 42;
 
-int SELECTED_COLOR = 43;
-int BACKGROUND_COLOR_1 = 42;
-int BACKGROUND_COLOR_2 = 46;
+int SELECTED_COLOR = YELLOW;
+int BACKGROUND_COLOR_1 = RED;
+int BACKGROUND_COLOR_2 = CYAN;
 
 
 coordinates add(coordinates a, coordinates b)
@@ -92,22 +104,34 @@ void setCoordinates(int x, int y)
 {
     printf("\x1b[%i;%iH", x, y);
 }
-void setGlobalColor(int color)
+
+int backgroundColor(console_color color)
+{
+    return color+10;
+}
+
+void setFrontColor(console_color color)
 {
     printf("\x1b[%im",color);
 }
 
-void setColor(int front, int background)
+void setBackgroundColor(console_color color)
 {
-    printf("\x1b[%im\x1b[%im", front, background);
+    printf("\x1b[%im",backgroundColor(color));
 }
 
-void setBackgroundColor(int color)
+void setColor(console_color front, console_color background)
+{
+    setFrontColor(front);
+    setBackgroundColor(background);
+}
+
+void setBackground(console_color color)
 {
     for(int i = 0; i < HEIGHT; i++) {
         for(int j = 0; j < WIDTH; j++) {
             setCoordinates(i, j);
-            setGlobalColor(44);
+            setBackgroundColor(color);
             printf(" ");
         }   
     }
@@ -119,7 +143,7 @@ void printEmptyPlateau()
     for(int i = (HEIGHT+1)/2 - 4; i < (HEIGHT+1)/2 + 4; i++) {
         for(int j = (WIDTH+1)/2 - 4; j < (WIDTH+1)/2 + 4; j++) {
             setCoordinates(i, j);
-            setGlobalColor( (i+j)%2 == 0 ? 42 : 46);
+            setBackgroundColor( (i+j)%2 == 0 ? GREEN : CYAN);
             printf(" ");
         }   
     }
@@ -128,17 +152,17 @@ void printEmptyPlateau()
 
 void goTo(int x, int y)
 {
-    setCoordinates(((HEIGHT+1)/2 - 4)+x, ((WIDTH+1)/2 -4)+y);
+    setCoordinates(((HEIGHT + 1) / 2 - 4) + x, ((WIDTH + 1) / 2 - 4) + y);
 }
 void setBasicBackground(int x, int y) {
     goTo(x,y);
-    setGlobalColor( (x+y)%2 == 0 ? 42 : 46);
+    setBackgroundColor((x+y)%2 == 0 ? GREEN : CYAN);
 }
 
 void printBorders()
 {
     goTo(-1,0);
-    setColor(37,45);
+    setColor(WHITE, MAGENTA);
     printf("01234567");
     for(int i = 0; i < 8; i++) {
         goTo(i,-1);
@@ -176,7 +200,7 @@ void printPlateau(plateau pl)
         for(int j = 0; j < 8; j++) {
             cell c = l.cells[j];
             goTo(j, i);
-            setColor(c.color == 1 ? 30 : 37, c.selected == 1 ? SELECTED_COLOR :((i+j)%2 == 0 ? BACKGROUND_COLOR_1 : BACKGROUND_COLOR_2));
+            setColor(c.color == 1 ? BLACK : WHITE, c.selected == 1 ? SELECTED_COLOR :((i+j)%2 == 0 ? BACKGROUND_COLOR_1 : BACKGROUND_COLOR_2));
             printf("%c",c.piece);
         }
     }
@@ -689,7 +713,7 @@ int main()
     int needToEat = 0;
     coordinates selected = {-1,-1};
 
-    setBackgroundColor(44);
+    setBackground(BLUE);
     setCoordinates(0, 1);
     printf("%i", C2D_SpriteSheetCount(spriteSheet));
     
@@ -717,7 +741,7 @@ int main()
         
 
         setCoordinates(0,0);
-        setColor((turn==1) ? 30 : 37,44);
+        setColor((turn==1) ? BLACK : WHITE, BLUE);
         printf("Au tour du joueur ");
         printf("%i", turn + 1);
 
